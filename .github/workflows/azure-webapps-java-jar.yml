@@ -10,21 +10,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Node 24 ke mutabiq checkout@v5 use kar rahe hain
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
+      # Naya setup-java@v5 jo Java 25 ko support karta hai
       - name: Set up JDK 25
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '25'
           distribution: 'zulu'
-          cache: 'maven'
 
-      - name: Build with Maven
-        run: mvn clean package
+      # Linux runner ko execute karne ki permission dena
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
 
+      # MimiLauncher (MCinaBox) ke liye sahi command (Gradle Build)
+      - name: Build JAR with Gradle
+        run: ./gradlew jar
+
+      # Output file ko upload karna taake aap download kar sakein
       - name: Upload MimiLauncher JAR Artifact
         uses: actions/upload-artifact@v4
         with:
           name: MimiLauncher-JAR
-          path: '**/target/*.jar'
+          path: '**/build/libs/*.jar'
