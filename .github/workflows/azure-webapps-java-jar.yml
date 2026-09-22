@@ -10,24 +10,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v5
+    - name: Checkout Repository
+      uses: actions/checkout@v5
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v5
-        with:
-          java-version: '17'
-          distribution: 'zulu'
+    - name: Set up JDK 17
+      uses: actions/setup-java@v5
+      with:
+        java-version: '17'
+        distribution: 'zulu'
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+    # Isko thoda improve kiya hai taake spaces ka error na aaye
+    - name: Auto-Fix Missing JitPack Dependency Repository
+      run: |
+        echo "Checking and updating build.gradle files..."
+        find . -name "build.gradle" -exec sed -i "s|[[:space:]]*mavenCentral()|mavenCentral()\n        maven { url 'https://jitpack.io' }|g" {} +
+        if [ -f "settings.gradle" ]; then
+          echo "Updating settings.gradle..."
+          sed -i "s|[[:space:]]*mavenCentral()|mavenCentral()\n        maven { url 'https://jitpack.io' }|g" settings.gradle
+        fi
 
-      # Is step mein cache disable ki hai aur JVM arguments lagaye hain error bypass karne ke liye
-      - name: Build with Gradle
-        run: ./gradlew assemble --no-configuration-cache -Dorg.gradle.jvmargs="--add-opens=java.base/java.util.concurrent=ALL-UNNAMED"
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
 
-      - name: Upload MimiLauncher JAR Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: MimiLauncher-JAR
-          path: '**/build/libs/*.jar'
+    - name: Build with Gradle
+      run: ./gradlew assemble --no-configuration-cache -Dorg.gradle.jvmargs="--add-opens=java.base/java.util.concurrent=ALL-UNNAMED"
+
+    - name: Upload MimiLauncher JAR Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: MimiLauncher-JAR
+        path: '**/build/libs/*.jar'
